@@ -38,7 +38,7 @@ Please refer https://jawbone.com/up/developer/ about the APIs.
    - `(jawbone-up:get/users/@me/workouts)`
 
 # notes
-Almost all API results are returned as string.
+Almost all API results are returned as a json string.
 You can use `#'jsown:parse` or something to parse them.
 
 
