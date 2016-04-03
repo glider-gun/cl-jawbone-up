@@ -1,23 +1,27 @@
 # What is this
 
-A wrapper for Jawbone UP's Web API for personal use.
+A wrapper of [Jawbone UP](https://jawbone.com/up)'s Web API for personal use.
 Please refer https://jawbone.com/up/developer/ about the APIs.
 
 # usage:
 
-1. go the developer site https://jawbone.com/up/developer/ and sign in
-2. select "Create App" from https://jawbone.com/up/developer/account
+1. Go the developer site https://jawbone.com/up/developer/ and sign in.
+2. Select "Create App" from https://jawbone.com/up/developer/account
 
 	during this, specify "http://localhost" to OAuth redirect URLs.
-4. load `jawbone-up` from lisp:
+4. Load the library from lisp:
 
 	clone this repository under whether
 
-	- ~/quicklisp/local-projects (without roswell)
+	- ~/quicklisp/local-projects
+
+	  if the lisp is installed without [roswell](https://github.com/roswell/roswell)
 	- ~/.roswell/local-projects (with roswell)
 
-	and do `(ql:quickload :jawbone-up)`
-5. authenticate.
+	  if the lisp is installed with [roswell](https://github.com/roswell/roswell)
+
+	and do `(ql:quickload :jawbone-up)`.
+5. Authenticate.
 
 	- the first time after installed:
 		- 1st: `(jawbone-up:set-and-save-app-token key secret)`
@@ -33,13 +37,15 @@ Please refer https://jawbone.com/up/developer/ about the APIs.
 		- 1st: `(jawbone-up:restore-app-token-from-file)`
 		- 2nd: `(jawbone-up:restore-authentication-from-file)`
 
-6. now you should be able to invoke apis. e.g.
+6. Now you should be able to invoke apis.
+
+	e.g.
    - `(jawbone-up:get/users/@me/moves)`
    - `(jawbone-up:get/users/@me/workouts)`
 
 # notes
 Almost all API results are returned as a json string.
-You can use `jsown` library or something to parse them like:
+You can use [jsown](https://github.com/madnificent/jsown) library or something to parse them like:
 
 ```lisp
 ;; get result on 2nd Apr. 2016
