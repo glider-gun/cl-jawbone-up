@@ -39,7 +39,21 @@ Please refer https://jawbone.com/up/developer/ about the APIs.
 
 # notes
 Almost all API results are returned as a json string.
-You can use `#'jsown:parse` or something to parse them.
+You can use `jsown` library or something to parse them like:
+
+```lisp
+;; get result on 2nd Apr. 2016
+(jsown:parse
+  (jawbone-up:get/users/@me/moves :date 20160402))
+
+;; get number of step on 2nd Apr. 2016
+(jsown:filter
+  (car (jsown:filter
+         (jsown:parse
+           (api/users/@me/moves :date 20160402))
+	       "data" "items"))
+   "details" "steps")
+```
 
 
 Some APIs, whose name ends with "/image" (like `#'get/moves/{move_xid}/image`),
@@ -47,6 +61,6 @@ returns a binary data representing a png image.
 For that case, you can use `#'jawbone-up:save-to-png-file` like:
 
 ```lisp
-(jawbone-up:save-to-png-file "~/workout.png"
-  (jawbone-up:get/workouts/{xid}/image "ABCDEFGHIJKLMNOPQRSTUVWXYQ012345"))
+(jawbone-up:save-to-png-file "~/move.png"
+  (jawbone-up:get/moves/{xid}/image "ABCDEFGHIJKLMNOPQRSTUVWXYQ012345"))
 ```
