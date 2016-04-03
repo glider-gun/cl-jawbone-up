@@ -4,6 +4,7 @@
 
 (export
  (defun save-to-png-file (path api-result)
+   "Save a byte array `api-result` (assuming to be PNG) into `path`."
    (with-open-file (s path :direction :output
 		      :element-type '(unsigned-byte 8)
 		      :if-does-not-exist :create)

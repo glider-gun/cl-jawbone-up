@@ -5,12 +5,12 @@
 (export
  (defparameter *authentication-access-token-file*
    (merge-pathnames ".jawbone-up-access-token.json" (user-homedir-pathname))
-   "a file where access token is saved into"))
+   "The path of file where access token is saved into."))
 
 (export
  (defparameter *authentication-app-token-file*
    (merge-pathnames ".jawbone-up-app-token.json" (user-homedir-pathname))
-   "a file where api key and secret are saved into"))
+   "The path of file where api key and secret are saved into."))
 
 ;;; oauth client api key and secret
 (defparameter *key* nil)
@@ -18,7 +18,7 @@
 
 (export
  (defun set-and-save-app-token (key secret)
-   "set key and secret of for "
+  "Set application id and secret, and save it to file specified by `*authentication-app-token-file*`."
    (setf *key* key *secret* secret)  
    (with-open-file (s *authentication-app-token-file*
 		      :direction :output
@@ -29,6 +29,7 @@
 
 (export
  (defun restore-app-token-from-file ()
+  "Restore application id and secret, from file specified by `*authentication-app-token-file*`."
    (destructuring-bind (key secret)
        (with-open-file (s *authentication-app-token-file*)
 	 (read s))
@@ -102,6 +103,7 @@
 
 (export
  (defun restore-authentication-from-file ()
+   "Restore access token, from file specified in `*authentication-authentication-token-file*`."
    (when (probe-file *authentication-access-token-file*)
      (setf *authentication-result*
 	   (with-open-file (s *authentication-access-token-file*)
@@ -109,6 +111,7 @@
 
 (export
  (defun authorize (&optional (scopes '("basic_read" "extended_read" "location_read" "friends_read" "mood_read" "mood_write" "move_read" "move_write" "sleep_read" "sleep_write" "meal_read" "meal_write" "weight_read" "weight_write" "generic_event_read" "generic_event_write" "heartrate_read")))
+   "Do authentication to get access token, and save it to file specified by `*authentication-access-token-file*`. For the meaning of `scopes`, please refer to https://jawbone.com/up/developer/authentication . By default uses all scope."
    (setf *authentication-code* nil)
    (start-acceptor)
    (trivial-open-browser:open-browser
