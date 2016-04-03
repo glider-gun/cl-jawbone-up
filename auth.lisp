@@ -26,11 +26,12 @@
      (print (list key secret) s))))
 
 
-(defun restore-app-token-from-file ()
-  (destructuring-bind (key secret)
-      (with-open-file (s *authentication-app-token-file*)
-	(read (read-all)))
-    (setf *key* key *secret* secret)))
+(export
+ (defun restore-app-token-from-file ()
+   (destructuring-bind (key secret)
+       (with-open-file (s *authentication-app-token-file*)
+	 (read s))
+     (setf *key* key *secret* secret))))
 
 ;;;; authentication of user
 
