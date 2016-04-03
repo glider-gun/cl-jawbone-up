@@ -31,7 +31,8 @@
    (destructuring-bind (key secret)
        (with-open-file (s *authentication-app-token-file*)
 	 (read s))
-     (setf *key* key *secret* secret))))
+     (setf *key* key *secret* secret)
+     (list key secret))))
 
 ;;;; authentication of user
 
