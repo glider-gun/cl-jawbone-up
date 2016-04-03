@@ -15,10 +15,10 @@ Please refer https://jawbone.com/up/developer/ about the APIs.
 
 	- ~/quicklisp/local-projects
 
-	  if the lisp is installed without [roswell](https://github.com/roswell/roswell)
-	- ~/.roswell/local-projects (with roswell)
+	  (if the lisp is installed without [roswell](https://github.com/roswell/roswell))
+	- ~/.roswell/local-projects
 
-	  if the lisp is installed with [roswell](https://github.com/roswell/roswell)
+	  (if the lisp is installed with [roswell](https://github.com/roswell/roswell))
 
 	and do `(ql:quickload :jawbone-up)`.
 5. Authenticate.
