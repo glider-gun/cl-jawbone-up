@@ -2,13 +2,6 @@
 
 (in-package #:jawbone-up)
 
-(defun request-with-header (method uri &key (response-type "application/json"))
-  (apply #'dex:request uri
-	 :method method
-	 :headers `(("Accept" . ,response-type)
-		    ("Authorization" . ,(format nil "Bearer ~A" (access-token))))
-	 nil))
-
 (defun api-url (api params)
   (concatenate 'string
 	       "https://jawbone.com" api "?"
