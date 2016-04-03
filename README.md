@@ -119,6 +119,7 @@ For that case, you can use `#'jawbone-up:save-to-png-file` like:
 ### heart rate: https://jawbone.com/up/developer/endpoints/heartrate
 - external function `get/users/@me/heartrates` (&key date page-token start-time end-time
                               updated-after limit)
+
 ### custom events: https://jawbone.com/up/developer/endpoints/custom
 - external function `get/users/@me/generic_events` (&key date page-token start-time end-time
                                   updated-after limit)
