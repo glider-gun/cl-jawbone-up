@@ -2,14 +2,15 @@
 
 (in-package #:jawbone-up)
 
+(export
+ (defparameter *authentication-access-token-file*
+   (merge-pathnames ".jawbone-up-access-token.json" (user-homedir-pathname))
+   "a file where access token is saved into"))
 
-(defparameter *authentication-access-token-file*
-  (merge-pathnames ".jawbone-up-access-token.json" (user-homedir-pathname))
-  "a file where access token is saved into")
-
-(defparameter *authentication-app-token-file*
-  (merge-pathnames ".jawbone-up-app-token.json" (user-homedir-pathname))
-  "a file where api key and secret are saved into")
+(export
+ (defparameter *authentication-app-token-file*
+   (merge-pathnames ".jawbone-up-app-token.json" (user-homedir-pathname))
+   "a file where api key and secret are saved into"))
 
 ;;; oauth client api key and secret
 (defparameter *key* nil)
