@@ -25,6 +25,29 @@
     (substitute #\_ #\- (string-downcase (symbol-name sym)))))
 
 (defmacro defapi (name args json-parameter-keys &body body)
+  "Define a function for jawbone api. `name` is the name of defined function.
+Its argument are determined by `args` and `json-parameter-keys`.
+
+  (defapi /foo/bar (xid) (date start-time)
+    (buzz))
+
+will be expanded as
+
+  (defun /foo/bar (xid &key date start-time)
+    (buzz))
+
+defun form.
+
+
+
+Inside `body`, a symbol %json-parameters% can be used.
+this is expanded as a alist (in above example)
+
+  ((\"date\" . date)
+   (\"start_time\" . start-time))
+
+which is intended to be passed as parameters for http request.
+"
   `(prog1
        (defun ,name (,@args ,@(if json-parameter-keys
 				(cons '&key json-parameter-keys)
