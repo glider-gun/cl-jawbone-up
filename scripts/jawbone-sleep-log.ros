@@ -1,0 +1,175 @@
+#!/bin/sh
+#|-*- mode:lisp -*-|#
+#| fetch sleep log of jawbone UP and draw/print.
+exec ros -Q -- $0 "$@"
+|#
+
+(ql:quickload '(:jawbone-up
+		:local-time
+		:alexandria
+		:iterate)
+	      :silent t)
+(defpackage :ros.script.suimin.3669198639
+  (:use :cl :iterate))
+(in-package :ros.script.suimin.3669198639)
+
+(defun get-sleep-times (item)
+  (let ((beg (jsown:filter item "details" "asleep_time"))
+	(end (jsown:filter item "details" "awake_time")))
+    (list (local-time:unix-to-timestamp beg)
+	  (local-time:unix-to-timestamp end))))
+
+(defun get-items-from-result (result)
+  (jsown:filter (jsown:parse result) "data" "items"))
+
+(defun sleeps (&key date start-time end-time)
+  (loop for result = (jawbone-up:get/users/@me/sleeps
+		      :date date :start-time start-time :end-time end-time)
+     then (jawbone-up:follow-link result)
+     while result
+     appending (get-items-from-result result)))
+
+(defun sleep-xid (sleep)
+  (jsown:filter sleep "xid"))
+
+(defun sleep-ticks (sleep)
+  (let ((data
+	 (mapcar
+	  (lambda (x) (cons
+		       (jsown:filter x "depth")
+		       (local-time:unix-to-timestamp (jsown:filter x "time"))))
+	  (jsown:filter
+	   (jsown:parse (jawbone-up:get/sleeps/{xid}/ticks (jsown:filter sleep "xid")))
+	   "data" "items"))))
+    (if data
+	(append (list (cons 1 (local-time:unix-to-timestamp (jsown:filter sleep "details" "asleep_time"))))
+		data
+		(list (cons 1 (local-time:unix-to-timestamp (jsown:filter sleep "details" "awake_time")))))
+	(append (list (cons 4 (local-time:unix-to-timestamp (jsown:filter sleep "details" "asleep_time"))))
+		(list (cons 1 (local-time:unix-to-timestamp (jsown:filter sleep "details" "awake_time"))))))))
+
+(defun time-range (beg end delta &optional (unit :sec))
+  (loop for cur = beg then (local-time:timestamp+ cur delta unit)
+     while (local-time:timestamp< cur end)
+     collect cur))
+
+(defun timestamp-max (&rest timestamps)
+  (iter (for ts in timestamps)
+	(finding ts maximizing (local-time:timestamp-to-unix ts))))
+
+(defun timestamp-min (&rest timestamps)
+  (iter (for ts in timestamps)
+	(finding ts minimizing (local-time:timestamp-to-unix ts))))
+
+(defun argmax (list)
+  (iter (for i from 0)
+	(for e in list)
+	(finding i maximizing e)))
+
+(defun sleep-durations-during (ticks beg delta &optional (unit :sec))
+  (let ((end (local-time:timestamp+ beg delta unit))
+	(prev-time (make-instance 'local-time:timestamp :day -10000))
+	(prev-status 1)
+	(durations (list 0 0 0 0 0)))
+    (dolist (tick ticks)
+      (destructuring-bind (status . time) tick
+	(cond
+	  ((local-time:timestamp< time beg))
+	  ((local-time:timestamp<= beg time end)
+	   (incf (nth prev-status durations)
+		 (local-time:timestamp-difference time
+						  (timestamp-max beg prev-time))))
+	  ((local-time:timestamp<= end time)
+	   (when (local-time:timestamp<= prev-time end)
+	     (incf (nth prev-status durations)
+		   (local-time:timestamp-difference end
+						    (timestamp-max beg prev-time))))))
+	(setf prev-status status)
+	(setf prev-time time)))
+    (if (plusp (apply #'+ durations))
+	durations
+	(list 0 (local-time:timestamp-difference end beg)))))
+
+(defun longest-sleep-status-during (ticks beg delta &optional (unit :sec))
+  (argmax (sleep-durations-during ticks beg delta unit)))
+
+(defun range (n)
+  (iter (for i below n) (collect i)))
+
+(defun sleep-status-to-char (status)
+  ; 1: awaken, 2: shallow, 3: deep.
+  ; 4 is expediently used as 'unspecified' (when sleep was recorded by hand, so there was no tick data)
+  (ecase status
+    (1 #\‾)
+    (2 #\-)
+    (3 #\_)
+    (4 #\.)))
+
+(defun draw-sleep-times (sleep-ticks-list &optional (indent 0))
+  (let* ((all-ticks (sort (apply #'append sleep-ticks-list) #'local-time:timestamp< :key #'cdr))
+	 (times (mapcar #'cdr all-ticks))
+	 (min-time (apply #'local-time:timestamp-minimum times))
+	 (min-date (local-time:timestamp-minimize-part min-time :hour))
+	 (max-time (apply #'local-time:timestamp-maximum times)))
+    (format t "~v,0T~{~3A~}~%" (+ 6 indent) (range 24))
+    (iter (for day first min-date then (local-time:timestamp+ day 1 :day))
+	  (until (local-time:timestamp< max-time day))
+	  (format t "~v,0T~A ~{~A~}~%"
+		  indent
+		  (local-time:format-timestring nil day
+						:format '((:month 2) #\/ (:day 2)))
+		  (iter (for time in (time-range day
+						 (local-time:timestamp+ day 1 :day)
+						 (/ 60 3) :minute))
+			(collect (sleep-status-to-char
+				  (longest-sleep-status-during
+				   all-ticks time (/ 60 3) :minute))))))
+    (format t "~v,0T~{~3A~}~%" (+ 6 indent) (range 24))))
+
+(defun print-sleep-times (sleeps)
+  (let ((format
+	 '((:month 2) #\/ (:day 2) #\space :short-weekday #\space
+	   (:hour 2) #\: (:min 2) #\: (:sec 2))))
+    (dolist (s (mapcar #'get-sleep-times (sort (copy-seq sleeps) #'<
+    					       :key (lambda (json) (jsown:filter json "time_completed")))))
+      (format t "~A -- ~A (~3F hours)~%"
+	      (local-time:format-timestring nil (car s)  :format format)
+	      (local-time:format-timestring nil (cadr s) :format format)
+	      (/ (local-time:timestamp-difference (cadr s) (car s)) 3600.0)))))
+
+(defun parse-datestring-into-unix (datestring)
+  "do conversion like \"2016-04-02\" -> unix time if datestring is non-nil, else returns nil."
+  (when datestring
+    (local-time:timestamp-to-unix (local-time:parse-timestring datestring))))
+
+(defun usage ()
+  (format t "Usage: jawbone-sleep-log [START-TIME] [END-TIME]
+
+Fetches sleep log of jawbone UP and draw/print them.
+
+Times can be specified like \"2016-04-10\" and
+data between START-TIME and END-TIME are fetched.
+START-TIME defaults to 2 weeks before today, and
+END-TIME defaults to current time.
+"))
+
+(defun main (&rest argv)
+  (declare (ignorable argv))
+  (if (member (car argv) '("--help" "-h") :test #'string-equal)
+      (progn
+	(usage)
+	1)
+      (progn
+	(if (and
+	     (jawbone-up:restore-app-token-from-file)
+	     (jawbone-up:restore-authentication-from-file))
+	    (let* ((sleeps (sleeps :start-time (parse-datestring-into-unix (car argv))
+				   :end-time   (parse-datestring-into-unix (cadr argv)))))
+	      (draw-sleep-times
+	       (mapcar #'sleep-ticks sleeps))
+	      (terpri)
+	      (print-sleep-times sleeps)
+	      0)
+	    (progn
+	      (format t "Error: not authenticated.~%")
+	      1)))))
