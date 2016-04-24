@@ -43,7 +43,12 @@ Please refer https://jawbone.com/up/developer/ about the APIs.
    - `(jawbone-up:get/users/@me/moves)`
    - `(jawbone-up:get/users/@me/workouts)`
 
-# notes
+# notes about authentication
+Once you authenticate, the authentication information are stored into `~/.jawbone-up-app-token.json` and `~/.jawbone-up-access-token.json` by default. You can copy this file into other environment and use the information with `(progn (jawbone-up:restore-app-token-from-file) (jawbone-up:restore-authentication-from-file))`.
+
+Note a new authentication invalidates old access tokens, as described [here](https://jawbone.com/up/developer/authentication).
+
+# Library API
 Almost all API results are returned as a json string.
 You can use [jsown](https://github.com/madnificent/jsown) library or something to parse them like:
 
@@ -70,9 +75,6 @@ For that case, you can use `#'jawbone-up:save-to-png-file` like:
 (jawbone-up:save-to-png-file "~/move.png"
   (jawbone-up:get/moves/{xid}/image "ABCDEFGHIJKLMNOPQRSTUVWXYQ012345"))
 ```
-
-
-# Library API
 
 ## authentication
 - external function `set-and-save-app-token` (key secret)
