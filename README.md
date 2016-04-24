@@ -102,7 +102,7 @@ For that case, you can use `#'jawbone-up:save-to-png-file` like:
 	The path of file where access token is saved into.
 
 ## misc
-- external function `save-to-png-file`
+- external function `save-to-png-file` (path api-result)
 
 	Save a byte array `api-result` (assuming to be PNG) into `path`.
 
