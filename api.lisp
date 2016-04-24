@@ -3,9 +3,12 @@
 (in-package #:jawbone-up)
 
 (defun api-url (api params)
-  (concatenate 'string
-	       "https://jawbone.com" api "?"
-	       (quri.encode:url-encode-params params)))
+  (if params
+      (concatenate 'string
+		   "https://jawbone.com" api "?"
+		   (quri.encode:url-encode-params params))
+      (concatenate 'string
+		   "https://jawbone.com" api)))
 
 (defun jb-request (method uri format-args json-parameters
 		   &key (response-type "application/json") verbose)
@@ -19,6 +22,13 @@
 	 :content (when (eq method :post)
 		    (remove nil json-parameters :key #'cdr))
 	 nil))
+
+(export
+ (defun follow-link (request-result)
+   "If there is \"links\" field in `request-result`, follow to the link."
+   (let* ((json (jsown:parse request-result))
+	  (link (ignore-errors (jsown:filter json "data" "links" "next"))))
+     (when link (jb-request :get link nil nil)))))
 
 (eval-when (:compile-toplevel :load-toplevel)
   (defun symbol-to-json-name (sym)

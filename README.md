@@ -106,6 +106,10 @@ For that case, you can use `#'jawbone-up:save-to-png-file` like:
 
 	Save a byte array `api-result` (assuming to be PNG) into `path`.
 
+- external function `follow-link` (request-result)
+
+	If there is \"links\" field in `request-result`, follow to the link.
+
 ## Web APIs
 ### band events: https://jawbone.com/up/developer/endpoints/bandevents
 - external function `get/users/@me/bandevents` (&key date start-time end-time updated-after)
